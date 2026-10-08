@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oceanix — Marine Biodiversity Platform</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="header-brand">
+    <span class="brand-wave">🌊</span>
+    <span class="brand-title">OCEANIX</span>
+    <span class="brand-sub">Marine Biodiversity Platform</span>
+  </div>
+  <div class="header-controls">
+    <select id="globalRegion" class="select-pill">
+      <option value="bay_of_bengal">Bay of Bengal</option>
+      <option value="arabian_sea">Arabian Sea</option>
+      <option value="andaman_sea">Andaman Sea</option>
+      <option value="lakshadweep_sea">Lakshadweep Sea</option>
+    </select>
+    <select id="langSelect" class="select-pill" title="Translate assistant output">
+      <option value="">English</option>
+      <option value="Tamil">Tamil</option>
+      <option value="Hindi">Hindi</option>
+      <option value="Malayalam">Malayalam</option>
+      <option value="Telugu">Telugu</option>
+      <option value="Kannada">Kannada</option>
+      <option value="Bengali">Bengali</option>
+    </select>
+    <div class="status-dot" id="statusDot" title="API status"></div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TABS
+═══════════════════════════════════════════════════════════ -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="research">🗺 Research</button>
+  <button class="tab-btn" data-tab="species">🐠 Species</button>
+  <button class="tab-btn" data-tab="compare">📊 Compare</button>
+  <button class="tab-btn" data-tab="policy">📋 Policy</button>
+  <button class="tab-btn" data-tab="assistant">🤖 Kural AI</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB: RESEARCH DASHBOARD
+═══════════════════════════════════════════════════════════ -->
+<div id="tab-research" class="tab-pane active">
+  <div class="dash-grid">
+
+    <!-- KPI Cards -->
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi-card">
+        <div class="kpi-label">Health Index</div>
+        <div class="kpi-value" id="kpiHealth">—</div>
+        <div class="kpi-sub" id="kpiGrade">Loading…</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Species Recorded</div>
+        <div class="kpi-value" id="kpiSpecies">—</div>
+        <div class="kpi-sub">recent 3 years</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Occurrences</div>
+        <div class="kpi-value" id="kpiOccurrences">—</div>
+        <div class="kpi-sub">recent 3 years</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Anomalies</div>
+        <div class="kpi-value" id="kpiAnomalies">—</div>
+        <div class="kpi-sub">flagged points</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg SST</div>
+        <div class="kpi-value" id="kpiSST">—</div>
+        <div class="kpi-sub">°C (Open-Meteo)</div>
+      </div>
+    </div>
+
+    <!-- Map + Chart Row -->
+    <div class="map-chart-row">
+      <div class="map-container">
+        <div class="section-header">
+          <h3>Occurrence Map</h3>
+          <div class="map-controls">
+            <button class="btn-sm" id="btnAnnotate" title="Click map to drop a note">📍 Annotate</button>
+            <button class="btn-sm" id="btnClearAnnotations">🗑 Notes</button>
+            <span class="device-note">📱 Saved on this device only</span>
+          </div>
+        </div>
+        <div id="map"></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="section-header">
+          <h3>Trend Chart</h3>
+          <select id="metricSelect" class="select-pill">
+            <option value="species_count">Species Count</option>
+            <option value="occurrence_count">Occurrences</option>
+            <option value="avg_sst">Avg SST</option>
+          </select>
+        </div>
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Environmental Data -->
+    <div class="env-section">
+      <div class="section-header">
+        <h3>Environmental Conditions <span class="badge">Open-Meteo</span></h3>
+      </div>
+      <div id="envCards" class="env-cards">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB: SPECIES EXPLORER
+═══════════════════════════════════════════════════════════ -->
+<div id="tab-species" class="tab-pane">
+  <div class="section-header">
+    <h2>Species Explorer</h2>
+    <div class="search-row">
+      <input id="speciesSearch" type="text" class="search-input" placeholder="Search by scientific name…" />
+      <button class="btn-primary" id="btnSpeciesSearch">Search</button>
+    </div>
+  </div>
+
+  <div id="speciesGrid" class="species-grid">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB: COMPARATIVE ANALYSIS
+═══════════════════════════════════════════════════════════ -->
+<div id="tab-compare" class="tab-pane">
+  <div class="section-header">
+    <h2>Comparative Analysis</h2>
+  </div>
+
+  <div class="compare-controls card">
+    <div class="ctrl-group">
+      <label>Mode</label>
+      <select id="compareMode" class="select-pill">
+        <option value="period">Period Comparison (same region)</option>
+        <option value="region">Region Comparison (same period)</option>
+      </select>
+    </div>
+
+    <div id="periodControls">
+      <div class="ctrl-group">
+        <label>Period A</label>
+        <input type="date" id="periodAStart" class="date-input" />
+        <span>→</span>
+        <input type="date" id="periodAEnd" class="date-input" />
+      </div>
+      <div class="ctrl-group">
+        <label>Period B</label>
+        <input type="date" id="periodBStart" class="date-input" />
+        <span>→</span>
+        <input type="date" id="periodBEnd" class="date-input" />
+      </div>
+    </div>
+
+    <div id="regionControls" style="display:none">
+      <div class="ctrl-group">
+        <label>Region B</label>
+        <select id="regionB" class="select-pill">
+          <option value="arabian_sea">Arabian Sea</option>
+          <option value="bay_of_bengal">Bay of Bengal</option>
+          <option value="andaman_sea">Andaman Sea</option>
+          <option value="lakshadweep_sea">Lakshadweep Sea</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btnCompare">Run Comparison</button>
+  </div>
+
+  <div id="compareResults" class="compare-results"></div>
+
+  <!-- What-If Projection -->
+  <div class="card whatif-card">
+    <h3>🔮 What-If Projection</h3>
+    <div class="whatif-controls">
+      <div class="ctrl-group">
+        <label>Stressor</label>
+        <select id="stressorType" class="select-pill">
+          <option value="temperature_rise">Temperature Rise</option>
+          <option value="ocean_acidification">Ocean Acidification</option>
+          <option value="overfishing">Overfishing</option>
+          <option value="pollution">Pollution</option>
+          <option value="habitat_loss">Habitat Loss</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label>Severity <span id="severityLabel">50%</span></label>
+        <input type="range" id="severity" min="0" max="100" value="50" class="slider" />
+      </div>
+      <div class="ctrl-group">
+        <label>Target Year</label>
+        <input type="number" id="targetYear" value="2040" min="2025" max="2100" class="num-input" />
+      </div>
+      <button class="btn-primary" id="btnWhatIf">Project</button>
+    </div>
+    <div id="whatIfResult" class="whatif-result"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB: POLICY DASHBOARD
+═══════════════════════════════════════════════════════════ -->
+<div id="tab-policy" class="tab-pane">
+  <div class="section-header">
+    <h2>Policy Dashboard</h2>
+  </div>
+
+  <div class="policy-grid">
+    <!-- Health Index Gauge -->
+    <div class="card health-card">
+      <h3>Regional Health Index</h3>
+      <div class="gauge-container">
+        <canvas id="gaugeChart" width="220" height="130"></canvas>
+        <div class="gauge-label">
+          <span id="gaugeScore">—</span>
+          <span class="gauge-grade" id="gaugeGrade">Loading…</span>
+        </div>
+      </div>
+      <p class="interpretation-text" id="healthInterp">—</p>
+    </div>
+
+    <!-- Component Breakdown -->
+    <div class="card">
+      <h3>Component Breakdown</h3>
+      <canvas id="componentsChart"></canvas>
+    </div>
+
+    <!-- Anomalies panel -->
+    <div class="card anomaly-card">
+      <h3>Anomaly Report</h3>
+      <div id="anomalyList" class="anomaly-list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="card recommendation-card">
+      <h3>Policy Recommendation</h3>
+      <p id="recommendationText">—</p>
+    </div>
+  </div>
+
+  <!-- Report + Upload -->
+  <div class="report-row">
+    <div class="card">
+      <h3>📥 Download PDF Report</h3>
+      <div class="ctrl-group">
+        <label>Period A (start:end)</label>
+        <input type="text" id="rptPeriodA" class="text-input" placeholder="2020-01-01:2022-12-31" />
+      </div>
+      <div class="ctrl-group">
+        <label>Period B (start:end)</label>
+        <input type="text" id="rptPeriodB" class="text-input" placeholder="2023-01-01:2025-12-31" />
+      </div>
+      <button class="btn-primary" id="btnReport">Download Report</button>
+    </div>
+
+    <div class="card">
+      <h3>📤 Upload Dataset (CSV)</h3>
+      <p class="small-note">
+        Expected columns: scientificName, decimalLatitude, decimalLongitude, eventDate, region<br/>
+        Optional: sst, depth, occurrenceID, vernacularName
+      </p>
+      <input type="file" id="csvUpload" accept=".csv" class="file-input" />
+      <button class="btn-primary" id="btnUpload">Validate</button>
+      <div id="uploadResult" class="upload-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TAB: OCEANIX KURAL AI ASSISTANT
+═══════════════════════════════════════════════════════════ -->
+<div id="tab-assistant" class="tab-pane">
+  <div class="assistant-layout">
+    <div class="assistant-header">
+      <h2>🤖 Oceanix Kural</h2>
+      <p class="assistant-sub">
+        AI assistant grounded in live OBIS data — type or speak your question.
+        Answers are based on real data fetched at query time.
+      </p>
+    </div>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-bubble assistant-bubble">
+        <strong>Oceanix Kural:</strong> Vanakkam! I'm Oceanix Kural, your marine biodiversity guide
+        for India's coastal waters. Ask me about species, ocean health trends, anomalies,
+        or conservation recommendations. I'll answer using live data from OBIS.
+      </div>
+    </div>
+
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" class="chat-input" placeholder="Ask about marine biodiversity…" />
+      <button class="btn-icon" id="btnMic" title="Voice input (click and speak)">🎤</button>
+      <button class="btn-primary" id="btnAsk">Send</button>
+    </div>
+    <div class="voice-status" id="voiceStatus"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ANNOTATION MODAL
+═══════════════════════════════════════════════════════════ -->
+<div id="annotateModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>📍 Add Map Note</h3>
+    <textarea id="annotateText" placeholder="Enter your observation note…" rows="4"></textarea>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btnSaveAnnotation">Save Note</button>
+      <button class="btn-ghost" id="btnCancelAnnotation">Cancel</button>
+    </div>
+    <p class="small-note">💾 Notes are saved on this device only (localStorage) — not shared across users.</p>
+  </div>
+</div>
+<div id="modalOverlay" class="modal-overlay hidden"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

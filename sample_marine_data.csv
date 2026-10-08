@@ -1,0 +1,11 @@
+scientificName,decimalLatitude,decimalLongitude,eventDate,region,sst,depth,vernacularName
+Lepidochelys olivacea,13.0827,80.2707,2024-03-15,bay_of_bengal,28.5,12.0,Olive Ridley Sea Turtle
+Balaenoptera musculus,12.5401,80.4512,2024-02-20,bay_of_bengal,27.8,45.0,Blue Whale
+Dugong dugon,9.2876,79.1345,2024-01-10,bay_of_bengal,28.1,8.5,Dugong
+Rhincodon typus,15.2993,73.8243,2024-04-05,arabian_sea,29.2,30.0,Whale Shark
+Sousa chinensis,11.9341,79.8322,2024-02-18,bay_of_bengal,28.4,15.0,Indo-Pacific Humpback Dolphin
+Chelonia mydas,10.5667,72.6417,2024-03-22,lakshadweep_sea,29.5,6.0,Green Sea Turtle
+Caretta caretta,11.6234,92.7265,2024-01-30,andaman_sea,28.9,22.0,Loggerhead Sea Turtle
+Pristis zijsron,13.2500,80.3100,2024-02-14,bay_of_bengal,27.9,18.0,Green Sawfish
+Manta birostris,12.0000,93.0000,2024-04-12,andaman_sea,29.0,35.0,Giant Oceanic Manta Ray
+Trichechus manatus,8.5241,76.9366,2024-03-01,arabian_sea,28.8,10.0,West Indian Manatee
